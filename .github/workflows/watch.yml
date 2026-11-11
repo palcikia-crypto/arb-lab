@@ -1,0 +1,32 @@
+name: Market Watch
+on:
+  schedule:
+    - cron: '19 */2 * * *'
+  workflow_dispatch: {}
+  push:
+    branches: [main]
+    paths:
+      - 'tools/market_watch.py'
+      - '.github/workflows/watch.yml'
+
+concurrency:
+  group: market-watch
+  cancel-in-progress: true
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Scan market
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p data
+          python -u tools/market_watch.py
