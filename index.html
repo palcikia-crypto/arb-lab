@@ -56,6 +56,11 @@ a{color:var(--acc);text-decoration:none}
       <div style="overflow-x:auto"><table id="vast"><thead><tr><th>Класс</th><th>Мин</th><th>Медиана</th><th>Офферов</th></tr></thead><tbody><tr><td colspan="4" style="color:var(--dim2)">загрузка…</td></tr></tbody></table></div>
     </div>
     <div class="card">
+      <h2>🔥 Спот-сделки <span class="r">самые дешёвые офферы прямо сейчас</span></h2>
+      <div style="overflow-x:auto"><table id="deals"><thead><tr><th>Класс</th><th>$ /ч</th><th>эфф./$</th><th>RAM</th><th>Где</th><th>ID</th></tr></thead><tbody><tr><td colspan="6" style="color:var(--dim2)">загрузка…</td></tr></tbody></table></div>
+      <div style="font-size:11px;color:var(--dim2);margin-top:8px">снайпер (tools/sniper.py) может сам брать такие оффера по VAST_API_KEY — схема в docs/autopilot.md</div>
+    </div>
+    <div class="card">
       <h2>💬 Модели OpenRouter <span class="r">цена за 1M токенов (blend)</span></h2>
       <div style="overflow-x:auto"><table id="mods"><thead><tr><th>Модель</th><th>$ вх</th><th>$ вых</th><th>Blend</th></tr></thead><tbody><tr><td colspan="4" style="color:var(--dim2)">загрузка…</td></tr></tbody></table></div>
     </div>
@@ -63,12 +68,13 @@ a{color:var(--acc);text-decoration:none}
       <h2>📋 Статус проекта</h2>
       <ul class="check">
         <li><span class="ok">✓</span> <b>Мониторинг маржи</b> — работает сам, бесплатно</li>
+        <li><span class="ok">✓</span> <b>Спот-разведка + снайпер</b> — оффера видны, скрипт готов</li>
         <li>○ <b>Топ-ап Vast.ai</b> — крипта $20-50, ждём решения</li>
         <li>○ <b>Аренда A100/4090 + vLLM</b> — onstart.sh готов</li>
         <li>○ <b>Заявка в OpenRouter Providers</b> — черновик в docs/launch_guide.md</li>
         <li>○ <b>Первые $ маржи</b> → масштабирование</li>
       </ul>
-      <div style="font-size:11.5px;margin-top:10px;color:var(--dim)"><a href="https://github.com/palcikia-crypto/arb-lab/blob/main/docs/launch_guide.md" target="_blank">Гайд запуска</a> · <a href="https://openrouter.ai/providers/apply" target="_blank">OpenRouter Providers</a></div>
+      <div style="font-size:11.5px;margin-top:10px;color:var(--dim)"><a href="https://github.com/palcikia-crypto/arb-lab/blob/main/docs/launch_guide.md" target="_blank">Гайд запуска</a> · <a href="https://github.com/palcikia-crypto/arb-lab/blob/main/docs/autopilot.md" target="_blank">Автопилот</a> · <a href="https://openrouter.ai/providers/apply" target="_blank">OpenRouter Providers</a></div>
     </div>
   </div>
   <div class="upd" id="upd">—</div>
@@ -89,6 +95,8 @@ async function load(){
     document.getElementById('h2').textContent=vc.length?vc[0][0]+' · '+money(vc[0][1].median):'—';
     document.getElementById('vast').innerHTML='<thead><tr><th>Класс</th><th>Мин</th><th>Медиана</th><th>Офферов</th></tr></thead><tbody>'+
       (vc.length?vc.map(([k,v])=>'<tr><td><b>'+esc(k)+'</b></td><td class="pos w700">'+money(v.low)+'</td><td>'+money(v.median)+'</td><td style="color:var(--dim)">'+v.offers+'</td></tr>').join(''):'<tr><td colspan="4" style="color:var(--dim2)">нет данных</td></tr>')+'</tbody>';
+    document.getElementById('deals').innerHTML='<thead><tr><th>Класс</th><th>$ /ч</th><th>эфф./$</th><th>RAM</th><th>Где</th><th>ID</th></tr></thead><tbody>'+
+      ((d.deals||[]).slice(0,10).map(x=>'<tr><td><b>'+esc(x.gpu)+'</b></td><td class="pos w700">'+money(x.price)+'</td><td>'+x.eff+'</td><td>'+(x.ram?Math.round(x.ram/1024)+' ГБ':'—')+'</td><td style="color:var(--dim)">'+esc(x.where||'—')+'</td><td style="color:var(--dim2)">'+x.id+'</td></tr>').join('')||'<tr><td colspan="6" style="color:var(--dim2)">нет данных</td></tr>')+'</tbody>';
     document.getElementById('mods').innerHTML='<thead><tr><th>Модель</th><th>$ вх</th><th>$ вых</th><th>Blend</th></tr></thead><tbody>'+
       ((d.models||[]).slice(0,12).map(m=>'<tr><td><b>'+esc(m.id)+'</b> <span class="b b-b">'+m.size_b+'B</span></td><td>'+m.price_in+'</td><td>'+m.price_out+'</td><td class="w700">$'+m.blended_1m+'</td></tr>').join('')||'<tr><td colspan="4" style="color:var(--dim2)">нет данных</td></tr>')+'</tbody>';
     document.getElementById('best').innerHTML='<thead><tr><th>Модель</th><th>GPU</th><th>ток/с</th><th>Выр/ч</th><th>Аренда/ч</th><th>Маржа/ч</th></tr></thead><tbody>'+

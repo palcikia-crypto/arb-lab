@@ -2,8 +2,8 @@
 """tools/market_watch.py — мониторинг инференс-арбитража.
 
 Каждые 2 часа (workflow watch.yml):
-  1. Цены аренды GPU на Vast.ai (публичный API, без ключа): low/median по классам
-  2. Цены токенов открытых моделей на OpenRouter (публичный API, цены за 1 токен)
+  1. Цены аренды GPU на Vast.ai: low/median по классам + топ спот-сделки (deals)
+  2. Цены токенов открытых моделей на OpenRouter (цены за 1 токен -> $/1M)
   3. Расчёт маржи $/час для связок (GPU-класс x модель) на реалистичной vLLM-пропускной
   4. -> data/market.json (панель index.html)
 """
@@ -87,8 +87,9 @@ def median(xs):
 
 
 def vast_prices():
-    """Лёгкие фильтрованные запросы по классам (маленький payload вместо полного каталога)."""
+    """Лёгкие фильтрованные запросы по классам: статистика + топ спот-сделки."""
     res = {}
+    deals = []
     for label, names in VAST_CLASSES:
         ps = []
         for gpu in names:
@@ -101,15 +102,23 @@ def vast_prices():
                 continue
             for o in d.get('offers') or []:
                 p = o.get('dph_total')
-                if isinstance(p, (int, float)) and p > 0:
-                    ps.append(round(float(p), 3))
+                if not (isinstance(p, (int, float)) and 0 < p < 25):
+                    continue
+                ps.append(round(float(p), 3))
+                if o.get('dlperf_per_dphtotal'):
+                    deals.append({'gpu': label, 'id': o.get('id'),
+                                  'price': round(float(p), 3),
+                                  'eff': round(float(o.get('dlperf_per_dphtotal') or 0), 1),
+                                  'ram': o.get('cpu_ram'), 'disk': o.get('disk_space'),
+                                  'where': o.get('geolocation'), 'down': o.get('inet_down')})
         if len(ps) >= 2:
             res[label] = {'low': min(ps), 'median': median(ps), 'offers': len(ps)}
-    return res
+    deals.sort(key=lambda x: x['price'])
+    return res, deals[:14]
 
 
 def _size_b(mid):
-    """Активные параметры модели из id: последний токен вида NNb (MoE: берём a17b => 17)."""
+    """Активные параметры модели из id: последний токен вида NNb (MoE: a17b => 17)."""
     ms = re.findall(r'(\d{1,3}(?:\.\d)?)b(?![a-z])', mid)
     if not ms:
         return None
@@ -191,11 +200,11 @@ def combos(models, vast):
 
 
 def main():
-    vast = vast_prices()
+    vast, deals = vast_prices()
     models = openrouter_models()
     best = combos(models, vast)
     out = {'updated_at': int(time.time()), 'vast': vast, 'models': models[:20],
-           'best': best,
+           'best': best, 'deals': deals,
            'note': 'маржа = выручка токенов (95% от цены OR, $/1M) минус медианная аренда Vast; токи/с vLLM с батчингом'}
     try:
         os.makedirs('data', exist_ok=True)
@@ -204,7 +213,7 @@ def main():
     except Exception:
         pass
     push_github('market.json', out)
-    log('vast classes=%d, models=%d, combos=%d' % (len(vast), len(models), len(best)))
+    log('vast classes=%d, models=%d, combos=%d, deals=%d' % (len(vast), len(models), len(best), len(deals)))
 
 
 if __name__ == '__main__':
