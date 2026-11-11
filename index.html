@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>⚡ ArbLab — инференс-арбитраж</title>
+<style>
+:root{--bg:#0b0e14;--card:#131826;--dim:#8b93a7;--dim2:#565e73;--green:#3ddc84;--red:#ff5c5c;--amber:#ffb02e;--acc:#6aa6ff}
+*{box-sizing:border-box}
+body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:#e8ecf4;margin:0;padding:16px}
+.wrap{max-width:1080px;margin:0 auto}
+h1{font-size:20px;margin:0 0 4px}
+.sub{color:var(--dim);font-size:12.5px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}
+.card{background:var(--card);border-radius:14px;padding:16px;border:1px solid #1e2438}
+h2{font-size:13px;margin:0 0 10px;color:#c7cfe0;font-weight:600}
+h2 .r{font-weight:400;color:var(--dim);font-size:11px}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{color:var(--dim2);text-align:left;font-weight:500;padding:4px 6px;border-bottom:1px solid #232a42}
+td{padding:5px 6px;border-bottom:1px solid #1a2035;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+.pos{color:var(--green)}.neg{color:var(--red)}.amb{color:var(--amber)}
+.w700{font-weight:700}
+.b{display:inline-block;padding:1px 7px;border-radius:6px;font-size:10.5px}
+.b-v{background:#1d2b1e;color:#7fe0a0}.b-o{background:#2b2416;color:var(--amber)}
+.b-r{background:#2b1616;color:var(--red)}.b-b{background:#16202f;color:var(--acc)}
+.hero{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.chip{background:var(--card);border:1px solid #1e2438;border-radius:12px;padding:10px 14px;font-size:12px;color:var(--dim)}
+.chip b{display:block;font-size:16px;color:#fff;margin-top:2px}
+.upd{color:var(--dim2);font-size:11px;text-align:right;margin:12px 0 0}
+.check li{list-style:none;padding:5px 0;font-size:12.5px;color:var(--dim)}
+.check{padding:0;margin:0}
+.check li b{color:#e8ecf4;font-weight:600}
+.ok{color:var(--green)}
+a{color:var(--acc);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>⚡ ArbLab <span style="color:var(--dim);font-size:13px;font-weight:400">инференс-арбитраж: Vast.ai → OpenRouter</span></h1>
+  <div class="sub">дешёвая аренда GPU → токены открытых моделей → OpenRouter ведёт трафик сам · мониторинг каждые 2 часа</div>
+  <div class="hero">
+    <div class="chip">Маржа/ч топ-связки<b id="h1">…</b></div>
+    <div class="chip">Дешевле всего GPU<b id="h2">…</b></div>
+    <div class="chip">Моделей в мониторинге<b id="h3">…</b></div>
+    <div class="chip">Стадия проекта<b id="h4">подготовка · $0</b></div>
+  </div>
+  <div class="grid">
+    <div class="card">
+      <h2>🥇 Топ связок по марже <span class="r">модель × GPU</span></h2>
+      <div style="overflow-x:auto"><table id="best"><thead><tr><th>Модель</th><th>GPU</th><th>ток/с</th><th>Выр/ч</th><th>Аренда/ч</th><th>Маржа/ч</th></tr></thead><tbody><tr><td colspan="6" style="color:var(--dim2)">загрузка…</td></tr></tbody></table></div>
+      <div style="font-size:11px;color:var(--dim2);margin-top:8px">выручка = токены × цена OpenRouter (−5.5% комиссия); аренда = медиана Vast.ai; токи/с консервативные</div>
+    </div>
+    <div class="card">
+      <h2>🖥 GPU: аренда на Vast.ai <span class="r">$/час</span></h2>
+      <div style="overflow-x:auto"><table id="vast"><thead><tr><th>Класс</th><th>Мин</th><th>Медиана</th><th>Офферов</th></tr></thead><tbody><tr><td colspan="4" style="color:var(--dim2)">загрузка…</td></tr></tbody></table></div>
+    </div>
+    <div class="card">
+      <h2>💬 Модели OpenRouter <span class="r">цена за 1M токенов (blend)</span></h2>
+      <div style="overflow-x:auto"><table id="mods"><thead><tr><th>Модель</th><th>$ вх</th><th>$ вых</th><th>Blend</th></tr></thead><tbody><tr><td colspan="4" style="color:var(--dim2)">загрузка…</td></tr></tbody></table></div>
+    </div>
+    <div class="card">
+      <h2>📋 Статус проекта</h2>
+      <ul class="check">
+        <li><span class="ok">✓</span> <b>Мониторинг маржи</b> — работает сам, бесплатно</li>
+        <li>○ <b>Топ-ап Vast.ai</b> — крипта $20-50, ждём решения</li>
+        <li>○ <b>Аренда A100/4090 + vLLM</b> — onstart.sh готов</li>
+        <li>○ <b>Заявка в OpenRouter Providers</b> — черновик в docs/launch_guide.md</li>
+        <li>○ <b>Первые $ маржи</b> → масштабирование</li>
+      </ul>
+      <div style="font-size:11.5px;margin-top:10px;color:var(--dim)"><a href="https://github.com/palcikia-crypto/arb-lab/blob/main/docs/launch_guide.md" target="_blank">Гайд запуска</a> · <a href="https://openrouter.ai/providers/apply" target="_blank">OpenRouter Providers</a></div>
+    </div>
+  </div>
+  <div class="upd" id="upd">—</div>
+</div>
+<script>
+const RAW='https://raw.githubusercontent.com/palcikia-crypto/arb-lab/main/data/market.json';
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function money(x){return '$'+(x==null?'—':Number(x).toFixed(2));}
+function cls(x){return x>0?'pos':(x<0?'neg':'amb');}
+async function load(){
+  try{
+    const r=await fetch(RAW+'?t='+Math.floor(Date.now()/60000));
+    const d=await r.json();
+    document.getElementById('h3').textContent=(d.models||[]).length||'—';
+    const b=(d.best||[])[0];
+    document.getElementById('h1').innerHTML=b?('<span class="'+cls(b.margin_hr)+'">'+money(b.margin_hr)+'</span> <span style="color:var(--dim);font-size:11px">'+esc(b.gpu)+' · '+esc((b.model||'').split('/')[1]||b.model)+'</span>'):'—';
+    let vc=Object.entries(d.vast||{}).map(([k,v])=>[k,v]).sort((a,b2)=>a[1].median-b2[1].median);
+    document.getElementById('h2').textContent=vc.length?vc[0][0]+' · '+money(vc[0][1].median):'—';
+    document.getElementById('vast').innerHTML='<thead><tr><th>Класс</th><th>Мин</th><th>Медиана</th><th>Офферов</th></tr></thead><tbody>'+
+      (vc.length?vc.map(([k,v])=>'<tr><td><b>'+esc(k)+'</b></td><td class="pos w700">'+money(v.low)+'</td><td>'+money(v.median)+'</td><td style="color:var(--dim)">'+v.offers+'</td></tr>').join(''):'<tr><td colspan="4" style="color:var(--dim2)">нет данных</td></tr>')+'</tbody>';
+    document.getElementById('mods').innerHTML='<thead><tr><th>Модель</th><th>$ вх</th><th>$ вых</th><th>Blend</th></tr></thead><tbody>'+
+      ((d.models||[]).slice(0,12).map(m=>'<tr><td><b>'+esc(m.id)+'</b> <span class="b b-b">'+m.size_b+'B</span></td><td>'+m.price_in+'</td><td>'+m.price_out+'</td><td class="w700">$'+m.blended_1m+'</td></tr>').join('')||'<tr><td colspan="4" style="color:var(--dim2)">нет данных</td></tr>')+'</tbody>';
+    document.getElementById('best').innerHTML='<thead><tr><th>Модель</th><th>GPU</th><th>ток/с</th><th>Выр/ч</th><th>Аренда/ч</th><th>Маржа/ч</th></tr></thead><tbody>'+
+      ((d.best||[]).slice(0,10).map(b=>'<tr><td><b>'+esc((b.model||'').split('/')[1]||b.model)+'</b></td><td><span class="b b-v">'+esc(b.gpu)+'</span></td><td>'+b.tps+'</td><td>'+money(b.rev_hr)+'</td><td style="color:var(--amber)">'+money(b.rent_hr)+'</td><td class="w700 '+cls(b.margin_hr)+'">'+money(b.margin_hr)+'</td></tr>').join('')||'<tr><td colspan="6" style="color:var(--dim2)">первые расчёты через ~2 минуты</td></tr>')+'</tbody>';
+    document.getElementById('upd').textContent='обновлено: '+new Date((d.updated_at||0)*1000).toLocaleString('ru-RU')+' · источник: data/market.json';
+  }catch(e){
+    document.getElementById('upd').textContent='данные ещё не собраны (первый прогон мониторинга)';
+  }
+}
+load();
+setInterval(load, 300000);
+</script>
+</body>
+</html>
