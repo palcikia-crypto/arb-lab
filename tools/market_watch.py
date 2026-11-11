@@ -10,17 +10,6 @@
 import base64, json, os, time, urllib.request
 
 REPO = 'palcikia-crypto/arb-lab'
-CLASSES = {
-    'A100_SXM4-80GB': 'A100 SXM4 80GB',
-    'A100_PCIE_80GB': 'A100 PCIe 80GB',
-    'H100_80GB_HBM3': 'H100 SXM 80GB',
-    'H100_PCIE': 'H100 PCIe',
-    'H200': 'H200',
-    'L40S': 'L40S',
-    'RTX_4090': 'RTX 4090',
-    'RTX_5090': 'RTX 5090',
-    'RTX_3090': 'RTX 3090',
-}
 # консервативная пропускная способность vLLM, ток/с (батчинг)
 TPS = {'A100': {(7, 9): 1600, (12, 15): 900}, '4090': {(7, 9): 800, (12, 15): 450}}
 SIZE_KEYS = ['7b', '8b', '9b', '12b', '14b']
@@ -73,6 +62,33 @@ def median(xs):
     return s[n // 2] if n % 2 else round((s[n // 2 - 1] + s[n // 2]) / 2, 3)
 
 
+def _gpu_label(name):
+    n = (name or '').upper().replace('_', ' ')
+    if '4090D' in n:
+        return None
+    if 'A100' in n and 'SXM' in n:
+        return 'A100 SXM4 80GB'
+    if 'A100' in n and 'PCIE' in n:
+        return 'A100 PCIe 80GB'
+    if 'A100' in n:
+        return 'A100 (прочее)'
+    if 'H100' in n and ('SXM' in n or 'HBM' in n):
+        return 'H100 SXM 80GB'
+    if 'H100' in n:
+        return 'H100 PCIe'
+    if 'H200' in n:
+        return 'H200'
+    if 'L40S' in n or 'L40 S' in n:
+        return 'L40S'
+    if 'RTX 4090' in n:
+        return 'RTX 4090'
+    if 'RTX 5090' in n:
+        return 'RTX 5090'
+    if 'RTX 3090' in n:
+        return 'RTX 3090'
+    return None
+
+
 def vast_prices():
     out = {}
     try:
@@ -80,21 +96,24 @@ def vast_prices():
         for o in d.get('offers') or []:
             if not o.get('rentable'):
                 continue
-            if int(o.get('num_gpus') or 0) != 1:
+            try:
+                if int(o.get('num_gpus') or 0) != 1:
+                    continue
+            except Exception:
                 continue
-            g = o.get('gpu_name')
-            if g not in CLASSES:
+            label = _gpu_label(o.get('gpu_name'))
+            if not label:
                 continue
             p = o.get('dph_total')
             if not isinstance(p, (int, float)) or p <= 0:
                 continue
-            out.setdefault(g, []).append(round(float(p), 3))
+            out.setdefault(label, []).append(round(float(p), 3))
     except Exception as e:
         log('vast: %s' % e)
     res = {}
     for g, ps in out.items():
         if len(ps) >= 3:
-            res[CLASSES[g]] = {'low': min(ps), 'median': median(ps), 'offers': len(ps)}
+            res[g] = {'low': min(ps), 'median': median(ps), 'offers': len(ps)}
     return res
 
 
@@ -144,9 +163,9 @@ def tps_for(size, tier):
 
 def combos(models, vast):
     rows = []
-    a100 = min([v['median'] for v in vast.values() if 'A100' in v] or [0]) or None
+    a100 = min([v['median'] for k, v in vast.items() if k.startswith('A100')] or [0]) or None
     g4090 = vast.get('RTX 4090', {}).get('median')
-    a100_low = min([v['low'] for v in vast.values() if 'A100' in v] or [0]) or None
+    a100_low = min([v['low'] for k, v in vast.items() if k.startswith('A100')] or [0]) or None
     for m in models:
         rev = lambda tps: round(tps * 3600 / 1e6 * m['blended_1m'] * 0.945, 2)
         if a100:
