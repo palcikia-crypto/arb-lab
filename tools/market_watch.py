@@ -3,13 +3,15 @@
 
 Каждые 2 часа (workflow watch.yml):
   1. Цены аренды GPU на Vast.ai: low/median по классам + топ спот-сделки (deals)
-  2. Цены токенов открытых моделей на OpenRouter (цены за 1 токен -> $/1M)
-  3. Расчёт маржи $/час для связок (GPU-класс x модель) на реалистичной vLLM-пропускной
-  4. -> data/market.json (панель index.html)
+  2. Цены RunPod (on-demand) — второй рынок для сравнения спреда
+  3. Цены токенов открытых моделей на OpenRouter (цены за 1 токен -> $/1M)
+  4. Маржа $/час связок + алерты (просадки маржи, скачки цен, окна дешевизны)
+  5. -> data/market.json (панель index.html)
 """
 import base64, json, os, re, time, urllib.parse, urllib.request
 
 REPO = 'palcikia-crypto/arb-lab'
+RAW = 'https://raw.githubusercontent.com/%s/main/data/market.json' % REPO
 # реалистичная суммарная пропускная vLLM (непрерывный батчинг), ток/с
 # 4090 = 24GB VRAM => модели до ~15B; big = 80GB => до ~32B (dense, fp16/8bit)
 TPS = {
@@ -32,6 +34,17 @@ VAST_CLASSES = [
     ('L40S', ['L40S']),
     ('A40', ['A40']),
 ]
+# класс -> как этот GPU называется на странице цен RunPod
+RP_NAMES = {
+    'RTX 4090': 'RTX 4090',
+    'RTX 3090': 'RTX 3090',
+    'RTX A6000': 'RTX A6000',
+    'A100 SXM4 80GB': 'A100 80GB',
+    'H100 SXM 80GB': 'H100 80GB',
+    'H200': 'H200',
+    'L40S': 'L40S',
+    'RTX 5090': 'RTX 5090',
+}
 
 
 def log(m):
@@ -45,6 +58,19 @@ def api(url, timeout=30, retries=2):
             req = urllib.request.Request(url, headers={'User-Agent': 'arb-lab/1.0'})
             with urllib.request.urlopen(req, timeout=timeout) as f:
                 return json.load(f)
+        except Exception as e:
+            last = e
+            time.sleep(3)
+    raise last
+
+
+def api_text(url, timeout=30, retries=2):
+    last = None
+    for _ in range(retries + 1):
+        try:
+            req = urllib.request.Request(url, headers={'User-Agent': 'arb-lab/1.0'})
+            with urllib.request.urlopen(req, timeout=timeout) as f:
+                return f.read().decode('utf-8', 'replace')
         except Exception as e:
             last = e
             time.sleep(3)
@@ -121,6 +147,24 @@ def vast_prices():
     mixed = [d for lst in per_class.values() for d in lst[:2]]
     mixed.sort(key=lambda x: x['price'])
     return res, mixed[:14]
+
+
+def runpod_prices():
+    """Цены RunPod (on-demand, Pods) со страницы runpod.io/pricing — второй рынок."""
+    res = {}
+    try:
+        c = api_text('https://www.runpod.io/pricing', timeout=30)
+    except Exception as e:
+        log('runpod: %s' % e)
+        return res
+    for label, name in RP_NAMES.items():
+        i = c.find(name)
+        if i < 0:
+            continue
+        m = re.search(r'\$(\d+(?:\.\d+)?)\s*/\s*hr', c[i:i + 400])
+        if m:
+            res[label] = float(m.group(1))
+    return res
 
 
 def _size_b(mid):
@@ -208,13 +252,45 @@ def combos(models, vast):
     return rows[:16]
 
 
+def build_alerts(prev, new):
+    """Сравниваем с прошлым прогоном: просадки маржи, скачки цен, окна дешевизны."""
+    alerts = []
+    if not prev:
+        return [{'lvl': 'info', 'text': 'Первый прогон с алертами — база для сравнения заложена'}]
+    pb = (prev.get('best') or [{}])[0].get('margin_hr')
+    nb = (new.get('best') or [{}])[0].get('margin_hr')
+    if isinstance(pb, (int, float)) and isinstance(nb, (int, float)):
+        if pb > 0 and nb < pb * 0.8:
+            alerts.append({'lvl': 'warn', 'text': 'Маржа топ-связки просела: $%s -> $%s/ч — возможно, рынок аренды подорожал' % (pb, nb)})
+        elif nb > pb * 1.2:
+            alerts.append({'lvl': 'ok', 'text': 'Маржа топ-связки выросла: $%s -> $%s/ч — хорошее окно' % (pb, nb)})
+    for k, v in (new.get('vast') or {}).items():
+        pv = (prev.get('vast') or {}).get(k) or {}
+        if pv.get('median') and v.get('median') and v['median'] > pv['median'] * 1.3:
+            alerts.append({'lvl': 'warn', 'text': '%s подорожал: медиана $%s -> $%s/ч' % (k, pv['median'], v['median'])})
+        if pv.get('low') and v.get('low') and v['low'] < pv['low'] * 0.7:
+            alerts.append({'lvl': 'ok', 'text': '%s подешевел: минимум $%s -> $%s/ч — окно для аренды' % (k, pv['low'], v['low'])})
+    for k, rp in (new.get('runpod') or {}).items():
+        vv = (new.get('vast') or {}).get(k) or {}
+        if vv.get('median') and rp < vv['median'] * 0.7:
+            alerts.append({'lvl': 'info', 'text': '%s на RunPod дешевле Vast ($%s vs $%s/ч) — покупай там' % (k, rp, vv['median'])})
+    return alerts[:5]
+
+
 def main():
+    prev = None
+    try:
+        prev = api(RAW, timeout=15, retries=1)
+    except Exception:
+        pass
     vast, deals = vast_prices()
+    runpod = runpod_prices()
     models = openrouter_models()
     best = combos(models, vast)
-    out = {'updated_at': int(time.time()), 'vast': vast, 'models': models[:20],
-           'best': best, 'deals': deals,
-           'note': 'маржа = выручка токенов (95% от цены OR, $/1M) минус медианная аренда Vast; только модели, влезающие в одну карту'}
+    out = {'updated_at': int(time.time()), 'vast': vast, 'runpod': runpod,
+           'models': models[:20], 'best': best, 'deals': deals,
+           'note': 'маржа = выручка токенов (95% от цены OR, $/1M) минус медианная аренды Vast; только модели, влезающие в одну карту'}
+    out['alerts'] = build_alerts(prev, out)
     try:
         os.makedirs('data', exist_ok=True)
         with open('data/market.json', 'w') as f:
@@ -222,7 +298,8 @@ def main():
     except Exception:
         pass
     push_github('market.json', out)
-    log('vast classes=%d, models=%d, combos=%d, deals=%d' % (len(vast), len(models), len(best), len(deals)))
+    log('vast=%d runpod=%d models=%d combos=%d deals=%d alerts=%d' %
+        (len(vast), len(runpod), len(models), len(best), len(deals), len(out['alerts'])))
 
 
 if __name__ == '__main__':
