@@ -24,7 +24,7 @@ tr:last-child td{border-bottom:none}
 .b{display:inline-block;padding:1px 7px;border-radius:6px;font-size:10.5px}
 .b-v{background:#1d2b1e;color:#7fe0a0}.b-o{background:#2b2416;color:var(--amber)}
 .b-r{background:#2b1616;color:var(--red)}.b-b{background:#16202f;color:var(--acc)}
-.hero{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.hero{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;align-items:stretch}
 .chip{background:var(--card);border:1px solid #1e2438;border-radius:12px;padding:10px 14px;font-size:12px;color:var(--dim)}
 .chip b{display:block;font-size:16px;color:#fff;margin-top:2px}
 .upd{color:var(--dim2);font-size:11px;text-align:right;margin:12px 0 0}
@@ -33,19 +33,50 @@ tr:last-child td{border-bottom:none}
 .check li b{color:#e8ecf4;font-weight:600}
 .ok{color:var(--green)}
 a{color:var(--acc);text-decoration:none}
+.cta{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#1f6feb,#3ddc84);color:#fff;font-weight:700;font-size:14px;padding:12px 20px;border-radius:12px;text-decoration:none;box-shadow:0 4px 18px rgba(61,220,132,.25)}
+.cta:hover{filter:brightness(1.1)}
+.ctabar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:var(--card);border:1px solid #1e2438;border-radius:14px;padding:12px 16px;margin-bottom:14px}
+.ctabar .t{font-size:12.5px;color:var(--dim);max-width:520px}
+.steps{counter-reset:s;list-style:none;padding:0;margin:0}
+.steps li{counter-increment:s;position:relative;padding:9px 0 9px 40px;font-size:12.5px;color:#c7cfe0;border-bottom:1px solid #1a2035}
+.steps li:last-child{border-bottom:none}
+.steps li::before{content:counter(s);position:absolute;left:0;top:8px;width:26px;height:26px;border-radius:8px;background:#16202f;color:var(--acc);font-weight:700;display:flex;align-items:center;justify-content:center;font-size:12px}
+.faq details{border-bottom:1px solid #1a2035;padding:7px 0;font-size:12.5px}
+.faq summary{cursor:pointer;color:#c7cfe0;font-weight:600}
+.faq p{color:var(--dim);margin:6px 0 2px}
 </style>
 </head>
 <body>
 <div class="wrap">
   <h1>⚡ ArbLab <span style="color:var(--dim);font-size:13px;font-weight:400">инференс-арбитраж: Vast.ai → OpenRouter</span></h1>
   <div class="sub">дешёвая аренда GPU → токены открытых моделей → OpenRouter ведёт трафик сам · мониторинг каждые 2 часа</div>
+
+  <div class="ctabar">
+    <div class="t"><b style="color:#fff">Всё готово к запуску.</b> Подготовка завершена на 100% и работает бесплатно. Единственный шаг — пополнить баланс Vast.ai (крипта, $20-50), дальше всё автоматизируется. Как будешь готов — жми кнопку.</div>
+    <a class="cta" href="https://cloud.vast.ai/account/" target="_blank">💳 Пополнить Vast.ai</a>
+  </div>
+
   <div class="hero">
     <div class="chip">Маржа/ч топ-связки<b id="h1">…</b></div>
     <div class="chip">Дешевле всего GPU<b id="h2">…</b></div>
     <div class="chip">Моделей в мониторинге<b id="h3">…</b></div>
-    <div class="chip">Стадия проекта<b id="h4">подготовка · $0</b></div>
+    <div class="chip">Стадия проекта<b id="h4">готово к запуску · ждём топ-ап</b></div>
   </div>
+
   <div class="grid">
+    <div class="card" style="grid-column:1/-1">
+      <h2>📚 Как это работает — простыми словами <span class="r">от А до Я, что происходит само, а что делаешь ты</span></h2>
+      <ol class="steps">
+        <li><b>Ты пополняешь баланс Vast.ai криптой</b> — $20-50 хватит на десятки часов аренды. Это единственный шаг руками, кнопка сверху. Пополняешь прямо на сайте Vast, кошелёк любой (BTC/ETH/USDT).</li>
+        <li><b>Снайпер ловит дешёвую видеокарту.</b> Цены гуляют в 4-7 раз за сутки. Наш скрипт (уже написан и лежит в репозитории) сам находит самый дешёвый оффер — смотри карточку «Спот-сделки», там живые цены с ID. Аренда 4090 — примерно как чашка кофе за 4 часа.</li>
+        <li><b>На карте автоматически стартует ИИ-сервер</b> (vLLM + открытая модель, например Qwen). Никаких настроек — стартовый скрипт уже в репозитории, срабатывает при запуске машины.</li>
+        <li><b>Модель подключается к OpenRouter</b> — это «маркетплейс ИИ» с миллионами разработчиков. Они платят за запросы, нам не нужно искать клиентов: трафик приходит сам.</li>
+        <li><b>Каждый запрос = деньги.</b> Разработчик платит за токены (OpenRouter оставляет себе ~5%, остальное нам). Vast списывает аренду карты. Разница = <b>маржа</b> — она видна в карточке «Топ связок» сверху, в реальном времени.</li>
+        <li><b>Вывод заработанного</b> — OpenRouter копит выручку в кабинете провайдера, выводишь по своим реквизитам (карта/крипта — настраивается при регистрации провайдера). Важно: на этом этапе надо один раз проверить, какие способы вывода доступны для твоей страны.</li>
+      </ol>
+      <div style="margin-top:10px;font-size:11.5px;color:var(--dim)">Почему это легально и безопасно: мы перепродаём <b>токены</b> (услуги ИИ), а не «субаренду серверов» — прямого запрета в правилах Vast нет. Если карту прервут (спот), снайпер просто поднимет новую — инференс не хранит состояние, ничего не теряется.</div>
+    </div>
+
     <div class="card">
       <h2>🥇 Топ связок по марже <span class="r">модель × GPU</span></h2>
       <div style="overflow-x:auto"><table id="best"><thead><tr><th>Модель</th><th>GPU</th><th>ток/с</th><th>Выр/ч</th><th>Аренда/ч</th><th>Маржа/ч</th></tr></thead><tbody><tr><td colspan="6" style="color:var(--dim2)">загрузка…</td></tr></tbody></table></div>
@@ -64,15 +95,27 @@ a{color:var(--acc);text-decoration:none}
       <h2>💬 Модели OpenRouter <span class="r">цена за 1M токенов (blend)</span></h2>
       <div style="overflow-x:auto"><table id="mods"><thead><tr><th>Модель</th><th>$ вх</th><th>$ вых</th><th>Blend</th></tr></thead><tbody><tr><td colspan="4" style="color:var(--dim2)">загрузка…</td></tr></tbody></table></div>
     </div>
+
+    <div class="card">
+      <h2>❓ Частые вопросы</h2>
+      <div class="faq">
+        <details><summary>Сколько денег нужно и когда окупится?</summary><p>$20-50. Аренда 4090 ~$0.35/час, то есть $20 = ~55 часов непрерывной работы. Первая прибыль — после одобрения заявки в OpenRouter (обычно несколько дней) и первых запросов.</p></details>
+        <details><summary>Что я должен делать каждый день?</summary><p>Ничего. Мониторинг, поиск сделок и (после включения снайпера) запуск сервера — автоматические. Твоя роль — раз в день взглянуть на панель.</p></details>
+        <details><summary>А если арендованную карту заберут?</summary><p>Спот-карта может прерваться. Инференс не хранит данные — снайпер просто арендует следующую дешёвую. Потерь нет, разве что минуты простоя.</p></details>
+        <details><summary>Куда приходят деньги и как выводить?</summary><p>Выручка копится у OpenRouter (кабинет провайдера). Вывод настраивается там же. Для юрисдикции РФ способы вывода надо проверить до подачи заявки — это отмечено в гайде запуска.</p></details>
+      </div>
+    </div>
+
     <div class="card">
       <h2>📋 Статус проекта</h2>
       <ul class="check">
         <li><span class="ok">✓</span> <b>Мониторинг маржи</b> — работает сам, бесплатно</li>
         <li><span class="ok">✓</span> <b>Спот-разведка + снайпер</b> — оффера видны, скрипт готов</li>
-        <li>○ <b>Топ-ап Vast.ai</b> — крипта $20-50, ждём решения</li>
-        <li>○ <b>Аренда A100/4090 + vLLM</b> — onstart.sh готов</li>
-        <li>○ <b>Заявка в OpenRouter Providers</b> — черновик в docs/launch_guide.md</li>
-        <li>○ <b>Первые $ маржи</b> → масштабирование</li>
+        <li><span class="ok">✓</span> <b>Панель + гайд + FAQ</b> — всё объяснение здесь же</li>
+        <li>○ <b>Топ-ап Vast.ai</b> — кнопка сверху, $20-50 криптой</li>
+        <li>○ <b>Запуск инстанса + vLLM</b> — скрипты готовы, дадим знать</li>
+        <li>○ <b>Заявка в OpenRouter Providers</b> — черновик готов</li>
+        <li>○ <b>Первая маржа</b> → масштабирование</li>
       </ul>
       <div style="font-size:11.5px;margin-top:10px;color:var(--dim)"><a href="https://github.com/palcikia-crypto/arb-lab/blob/main/docs/launch_guide.md" target="_blank">Гайд запуска</a> · <a href="https://github.com/palcikia-crypto/arb-lab/blob/main/docs/autopilot.md" target="_blank">Автопилот</a> · <a href="https://openrouter.ai/providers/apply" target="_blank">OpenRouter Providers</a></div>
     </div>
