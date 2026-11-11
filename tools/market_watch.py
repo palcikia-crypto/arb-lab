@@ -11,9 +11,10 @@ import base64, json, os, re, time, urllib.parse, urllib.request
 
 REPO = 'palcikia-crypto/arb-lab'
 # реалистичная суммарная пропускная vLLM (непрерывный батчинг), ток/с
+# 4090 = 24GB VRAM => модели до ~15B; big = 80GB => до ~32B (dense, fp16/8bit)
 TPS = {
-    'big': {(7, 9): 2200, (12, 15): 1200, (16, 32): 380, (60, 72): 150},
-    '4090': {(7, 9): 1400, (12, 15): 700, (16, 32): 220},
+    'big': {(7, 9): 2200, (12, 15): 1200, (16, 32): 380},
+    '4090': {(7, 9): 1400, (12, 15): 700},
 }
 KEYWORDS = ['qwen', 'llama', 'deepseek', 'mistral', 'gemma', 'phi', 'granite', 'olmo']
 
@@ -147,8 +148,11 @@ def openrouter_models():
                 continue
             if 'vl' in mid.split('-') or 'vision' in mid:
                 continue
+            # MoE с несколькими экспертами (8x22b и т.п.) не влезают в одну 80GB карту
+            if re.search(r'\d+x\d+b', mid):
+                continue
             size = _size_b(mid)
-            if not size or not (6 <= size <= 72):
+            if not size or not (6 <= size <= 32):
                 continue
             pr = (m.get('pricing') or {})
             try:
@@ -210,7 +214,7 @@ def main():
     best = combos(models, vast)
     out = {'updated_at': int(time.time()), 'vast': vast, 'models': models[:20],
            'best': best, 'deals': deals,
-           'note': 'маржа = выручка токенов (95% от цены OR, $/1M) минус медианная аренда Vast; токи/с vLLM с батчингом'}
+           'note': 'маржа = выручка токенов (95% от цены OR, $/1M) минус медианная аренда Vast; только модели, влезающие в одну карту'}
     try:
         os.makedirs('data', exist_ok=True)
         with open('data/market.json', 'w') as f:
