@@ -56,7 +56,8 @@ def api(url, timeout=30, retries=2):
     for _ in range(retries + 1):
         try:
             req = urllib.request.Request(url, headers={'User-Agent': 'arb-lab/1.0'})
-            with urllib.request.urlopen(req, timeout=timeout) as f:
+            with urllib.request.urlopen(req, timeout=time
+out) as f:
                 return json.load(f)
         except Exception as e:
             last = e
@@ -119,7 +120,8 @@ def vast_prices():
     deals = []
     for label, names in VAST_CLASSES:
         ps = []
-        for gpu in names:
+        for g
+pu in names:
             q = urllib.parse.quote(json.dumps(
                 {'gpu_name': {'eq': gpu}, 'rentable': {'eq': True}, 'num_gpus': {'eq': 1}}))
             try:
@@ -164,7 +166,8 @@ def runpod_prices():
         m = re.search(r'\$(\d+(?:\.\d+)?)\s*/\s*hr', c[i:i + 400])
         if m:
             res[label] = float(m.group(1))
-    return res
+    retu
+rn res
 
 
 def _size_b(mid):
@@ -193,8 +196,8 @@ def openrouter_models():
             if 'vl' in mid.split('-') or 'vision' in mid:
                 continue
             # MoE с несколькими экспертами (8x22b и т.п.) не влезают в одну 80GB карту
-            if re.search(r'\d+x\d+b', mid):
-                continue
+            if re.search(r'\d+x\d+b', mid) or re.search(r'-a\d+b', mid):
+                continue  # MoE: суммарные веса не влезут в одну 80GB карту
             size = _size_b(mid)
             if not size or not (6 <= size <= 32):
                 continue
@@ -221,7 +224,8 @@ def openrouter_models():
 def tps_for(size, tier):
     for (lo, hi), v in TPS[tier].items():
         if lo <= size <= hi:
-            return v
+            retur
+n v
     return None
 
 
@@ -261,7 +265,8 @@ def build_alerts(prev, new):
     nb = (new.get('best') or [{}])[0].get('margin_hr')
     if isinstance(pb, (int, float)) and isinstance(nb, (int, float)):
         if pb > 0 and nb < pb * 0.8:
-            alerts.append({'lvl': 'warn', 'text': 'Маржа топ-связки просела: $%s -> $%s/ч — возможно, рынок аренды подорожал' % (pb, nb)})
+            alerts.append({'lvl': 'warn', 'text': 'Маржа топ-связки про
+села: $%s -> $%s/ч — возможно, рынок аренды подорожал' % (pb, nb)})
         elif nb > pb * 1.2:
             alerts.append({'lvl': 'ok', 'text': 'Маржа топ-связки выросла: $%s -> $%s/ч — хорошее окно' % (pb, nb)})
     for k, v in (new.get('vast') or {}).items():
@@ -300,6 +305,7 @@ def main():
     push_github('market.json', out)
     log('vast=%d runpod=%d models=%d combos=%d deals=%d alerts=%d' %
         (len(vast), len(runpod), len(models), len(best), len(deals), len(out['alerts'])))
+
 
 
 if __name__ == '__main__':
