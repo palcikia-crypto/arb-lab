@@ -8,11 +8,17 @@
   3. Если у нас уже есть инстанс и рынок подорожал (цена > MAX_PRICE * 1.5) — убивает его.
   Инференс stateless: если инстанс прервали, снайпер просто поднимет новый на другом оффере.
 
-Требует: VAST_API_KEY (секрет репозитория или переменная окружения).
+DRY RUN (без денег и ключа):
+  DRY_RUN=1 python3 tools/sniper.py
+  — ничего не арендует, только печатает, какое решение принял бы: какой оффер,
+    по какой цене, уложился ли в MAX_PRICE. Идеально, чтобы посмотреть
+    "мозг" снайпера ДО пополнения баланса.
+
+Требует (для боевого режима): VAST_API_KEY — секрет репозитория или переменная окружения.
 Тело запроса создания инстанса сверить с https://docs.vast.ai/api-reference/creating-instances-with-api
 при первом живом запуске — Vast иногда меняет схему.
 
-Запуск: python3 tools/sniper.py   (env: GPU, MODEL, MAX_PRICE, VAST_API_KEY)
+Запуск: python3 tools/sniper.py   (env: GPU, MODEL, MAX_PRICE, VAST_API_KEY, DRY_RUN)
 """
 import json, os, time, urllib.parse, urllib.request
 
@@ -28,10 +34,13 @@ def req(method, path, body=None, key=None):
         return json.load(f)
 
 
-def cheapest(gpu, key):
+def cheapest(gpu, key=None):
+    """Фильтрованный поиск как в market_watch: ключ не нужен, API публичный."""
     q = urllib.parse.quote(json.dumps(
         {'gpu_name': {'eq': gpu}, 'rentable': {'eq': True}, 'num_gpus': {'eq': 1}}))
-    d = req('GET', '/bundles/?q=' + q, key=key)
+    r = urllib.request.Request(BASE + '/bundles/?q=' + q, headers={'User-Agent': 'arb-lab/1.0'})
+    with urllib.request.urlopen(r, timeout=30) as f:
+        d = json.load(f)
     off = [o for o in (d.get('offers') or [])
            if isinstance(o.get('dph_total'), (int, float)) and 0 < o['dph_total'] < 25]
     off.sort(key=lambda o: o['dph_total'])
@@ -55,8 +64,7 @@ def create(offer, model, key):
         'direct_port_count': 1,
         'price': round(offer['dph_total'] * 1.02, 4),  # бид чуть выше -> прерываемый, дешевле
     }
-    d = req('PUT', '/asks/%d/' % offer['id'], body=body, key=key)
-    return d
+    return req('PUT', '/asks/%d/' % offer['id'], body=body, key=key)
 
 
 def destroy(inst, key):
@@ -64,31 +72,48 @@ def destroy(inst, key):
 
 
 def main():
+    dry = os.environ.get('DRY_RUN', '') in ('1', 'true', 'yes')
     key = os.environ.get('VAST_API_KEY')
-    if not key:
-        print('[sniper] нет VAST_API_KEY — выйди на https://cloud.vast.ai/account/credentials')
-        return
     gpu = os.environ.get('GPU', 'RTX 4090')
     model = os.environ.get('MODEL', 'Qwen/Qwen3-8B')
     max_price = float(os.environ.get('MAX_PRICE', '0.30'))
+    tag = '[sniper-dry]' if dry else '[sniper]'
+
+    off = cheapest(gpu)
+    now_price = off['dph_total'] if off else None
+    print('%s рынок %s: самый дешёвый оффер #%s по $%s/ч (порог $%s, модель %s)' %
+          (tag, gpu, off['id'] if off else '—', now_price, max_price, model))
+
+    if dry:
+        # ---- режим rehearsal: ничего не создаём, только показываем решение ----
+        if not off:
+            print('%s ВЕРДИКТ: офферов нет, ждать' % tag)
+        elif now_price <= max_price:
+            print('%s ВЕРДИКТ: АРЕНДОВАЛ БЫ оффер #%s по $%s/ч (~$%s за 24ч, ~$%s за 3 дня)' %
+                  (tag, off['id'], now_price, round(now_price * 24, 2), round(now_price * 72, 2)))
+            print('%s далее: vLLM + %s -> endpoint 8000 -> заявка OpenRouter' % (tag, model))
+        else:
+            print('%s ВЕРДИКТ: ЖДАЛ БЫ — мин. цена $%s выше порога $%s (пересчёт через 2 часа)' %
+                  (tag, now_price, max_price))
+        return
+
+    if not key:
+        print('[sniper] нет VAST_API_KEY — ключ на https://cloud.vast.ai/account/credentials')
+        print('[sniper] прогон в режиме репетиции: DRY_RUN=1 python3 tools/sniper.py')
+        return
     running = my_instances(key)
     if running:
         cur = running[0]
-        off = cheapest(gpu, key)
-        now_price = off['dph_total'] if off else None
-        print('[sniper] инстанс #%d уже работает (%s), рынок: %s' %
-              (cur['id'], cur.get('label'), now_price))
+        print('[sniper] инстанс #%d уже работает, рынок: %s' % (cur['id'], now_price))
         if now_price and now_price > max_price * 1.5:
             print('[sniper] рынок подорожал — убиваю инстанс')
             destroy(cur, key)
         return
-    off = cheapest(gpu, key)
     if not off:
         print('[sniper] нет офферов %s' % gpu)
         return
-    if off['dph_total'] > max_price:
-        print('[sniper] %s: мин %s > MAX %s — ждём просадки' %
-              (gpu, off['dph_total'], max_price))
+    if now_price > max_price:
+        print('[sniper] мин %s > MAX %s — ждём просадки' % (now_price, max_price))
         return
     d = create(off, model, key)
     print('[sniper] создан инстанс из оффера #%d по %s$/ч: %s' %
