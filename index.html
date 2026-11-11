@@ -32,7 +32,8 @@ tr:last-child td{border-bottom:none}
 .check{padding:0;margin:0}
 .check li b{color:#e8ecf4;font-weight:600}
 .ok{color:var(--green)}
-a{color:var(--acc);text-decoration:none}
+a{color:v
+ar(--acc);text-decoration:none}
 .cta{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#1f6feb,#3ddc84);color:#fff;font-weight:700;font-size:14px;padding:12px 20px;border-radius:12px;text-decoration:none;box-shadow:0 4px 18px rgba(61,220,132,.25)}
 .cta:hover{filter:brightness(1.1)}
 .ctabar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:var(--card);border:1px solid #1e2438;border-radius:14px;padding:12px 16px;margin-bottom:14px}
@@ -58,7 +59,8 @@ a{color:var(--acc);text-decoration:none}
 
   <div class="hero">
     <div class="chip">Маржа/ч топ-связки<b id="h1">…</b></div>
-    <div class="chip">Дешевле всего GPU<b id="h2">…</b></div>
+    <div class="ch
+ip">Дешевле всего GPU<b id="h2">…</b></div>
     <div class="chip">Моделей в мониторинге<b id="h3">…</b></div>
     <div class="chip">Стадия проекта<b id="h4">готово к запуску · ждём топ-ап</b></div>
   </div>
@@ -74,7 +76,8 @@ a{color:var(--acc);text-decoration:none}
         <li><b>Каждый запрос = деньги.</b> Разработчик платит за токены (OpenRouter оставляет себе ~5%, остальное нам). Vast списывает аренду карты. Разница = <b>маржа</b> — она видна в карточке «Топ связок» сверху, в реальном времени.</li>
         <li><b>Вывод заработанного</b> — OpenRouter копит выручку в кабинете провайдера, выводишь по своим реквизитам (карта/крипта — настраивается при регистрации провайдера). Важно: на этом этапе надо один раз проверить, какие способы вывода доступны для твоей страны.</li>
       </ol>
-      <div style="margin-top:10px;font-size:11.5px;color:var(--dim)">Почему это легально и безопасно: мы перепродаём <b>токены</b> (услуги ИИ), а не «субаренду серверов» — прямого запрета в правилах Vast нет. Если карту прервут (спот), снайпер просто поднимет новую — инференс не хранит состояние, ничего не теряется.</div>
+      <div style="margin-top:10px;font-size:11.5px;color:var(--dim)">Почему это легально и безопасно: мы перепродаём <b>токены</b> (услуги ИИ), а не «субаренду серверов» — прямого запрета 
+в правилах Vast нет. Если карту прервут (спот), снайпер просто поднимет новую — инференс не хранит состояние, ничего не теряется.</div>
     </div>
 
     <div class="card">
@@ -99,11 +102,26 @@ a{color:var(--acc);text-decoration:none}
     <div class="card">
       <h2>❓ Частые вопросы</h2>
       <div class="faq">
-        <details><summary>Сколько денег нужно и когда окупится?</summary><p>$20-50. Аренда 4090 ~$0.35/час, то есть $20 = ~55 часов непрерывной работы. Первая прибыль — после одобрения заявки в OpenRouter (обычно несколько дней) и первых запросов.</p></details>
+        <deta
+ils><summary>Сколько денег нужно и когда окупится?</summary><p>$20-50. Аренда 4090 ~$0.35/час, то есть $20 = ~55 часов непрерывной работы. Первая прибыль — после одобрения заявки в OpenRouter (обычно несколько дней) и первых запросов.</p></details>
         <details><summary>Что я должен делать каждый день?</summary><p>Ничего. Мониторинг, поиск сделок и (после включения снайпера) запуск сервера — автоматические. Твоя роль — раз в день взглянуть на панель.</p></details>
         <details><summary>А если арендованную карту заберут?</summary><p>Спот-карта может прерваться. Инференс не хранит данные — снайпер просто арендует следующую дешёвую. Потерь нет, разве что минуты простоя.</p></details>
         <details><summary>Куда приходят деньги и как выводить?</summary><p>Выручка копится у OpenRouter (кабинет провайдера). Вывод настраивается там же. Для юрисдикции РФ способы вывода надо проверить до подачи заявки — это отмечено в гайде запуска.</p></details>
       </div>
+    </div>
+
+    <div class="card" style="grid-column:1/-1">
+      <h2>💡 Пассивные треки — меню лазеек <span class="r">полный разбор с цифрами: docs/passive_tracks.md</span></h2>
+      <div style="overflow-x:auto"><table>
+        <thead><tr><th>Трек</th><th>Что нужно</th><th>Сколько даёт</th><th>Статус</th></tr></thead>
+        <tbody>
+          <tr><td><b>🥇 Инференс-арбитраж</b> (Vast → OpenRouter)</td><td>Топ-ап $20-50</td><td class="pos">Маржа с токенов, растёт с трафиком</td><td><span class="b b-v">готово на 100%</span></td></tr>
+          <tr><td><b>🥈 Grass / Honeygain</b> (продажа домашнего интернета)</td><td>Домашний IP + включённое устройство</td><td class="amb">$5-50/мес, фоном</td><td><span class="b b-o">опция, если есть домашний канал</span></td></tr>
+          <tr><td><b>🥉 Salad</b> (домашняя игровая карта)</td><td>Физическая 3090/4090 дома</td><td class="amb">до ~$0.60/час</td><td><span class="b b-o">если появится карта</span></td></tr>
+          <tr><td><b>⚙️ DePIN-сети</b> (io.net / Akash / Render)</td><td>Те же арендованные GPU</td><td class="amb">Токены, загрузка плавает</td><td><span class="b b-b">второй рынок сбыта — позже</span></td></tr>
+        </tbody>
+      </table></div>
+      <div style="font-size:11.5px;color:var(--dim);margin-top:8px">❌ Не работает (проверено): Salad/Grass на VPS, перепродажа голых VM (ToS), авто-вывод «на счётчик». Честный разбор каждого трека — в <a href="https://github.com/palcikia-crypto/arb-lab/blob/main/docs/passive_tracks.md" target="_blank">docs/passive_tracks.md</a></div>
     </div>
 
     <div class="card">
@@ -117,7 +135,8 @@ a{color:var(--acc);text-decoration:none}
         <li>○ <b>Заявка в OpenRouter Providers</b> — черновик готов</li>
         <li>○ <b>Первая маржа</b> → масштабирование</li>
       </ul>
-      <div style="font-size:11.5px;margin-top:10px;color:var(--dim)"><a href="https://github.com/palcikia-crypto/arb-lab/blob/main/docs/launch_guide.md" target="_blank">Гайд запуска</a> · <a href="https://github.com/palcikia-crypto/arb-lab/blob/main/docs/autopilot.md" target="_blank">Автопилот</a> · <a href="https://openrouter.ai/providers/apply" target="_blank">OpenRouter Providers</a></div>
+      <div style="font-size:11.5px;margin-top:10px;color:var(--dim)"><a href="https://github.com/palcikia-crypto/arb-lab/blob/main/docs/launch_guide.md" target="_blank">Гайд запуска</a> · <a href="https://github.com/palcikia-crypto/arb-lab/blob/main/docs/autopilot.md" target="_blank">Автопилот</a> · <a href="https://openrouter.ai/providers/appl
+y" target="_blank">OpenRouter Providers</a></div>
     </div>
   </div>
   <div class="upd" id="upd">—</div>
@@ -139,7 +158,8 @@ async function load(){
     document.getElementById('vast').innerHTML='<thead><tr><th>Класс</th><th>Мин</th><th>Медиана</th><th>Офферов</th></tr></thead><tbody>'+
       (vc.length?vc.map(([k,v])=>'<tr><td><b>'+esc(k)+'</b></td><td class="pos w700">'+money(v.low)+'</td><td>'+money(v.median)+'</td><td style="color:var(--dim)">'+v.offers+'</td></tr>').join(''):'<tr><td colspan="4" style="color:var(--dim2)">нет данных</td></tr>')+'</tbody>';
     document.getElementById('deals').innerHTML='<thead><tr><th>Класс</th><th>$ /ч</th><th>эфф./$</th><th>RAM</th><th>Где</th><th>ID</th></tr></thead><tbody>'+
-      ((d.deals||[]).slice(0,10).map(x=>'<tr><td><b>'+esc(x.gpu)+'</b></td><td class="pos w700">'+money(x.price)+'</td><td>'+x.eff+'</td><td>'+(x.ram?Math.round(x.ram/1024)+' ГБ':'—')+'</td><td style="color:var(--dim)">'+esc(x.where||'—')+'</td><td style="color:var(--dim2)">'+x.id+'</td></tr>').join('')||'<tr><td colspan="6" style="color:var(--dim2)">нет данных</td></tr>')+'</tbody>';
+      ((d.deals||[]).slice(0,10).map(x=>'<tr><td><b>'+esc(x.gpu)+'</b></td><td class="pos w700">'+money(x.price)+'</td><td>'+x.eff+'</td><td>'+(x.ram?Math.round(x.ram/1024)+' ГБ':'—')+'</td><td style="color:var(--dim)">'+esc(x.where||'—')+'</td><td style="color:var(--dim2)">'+x.id+'</td></tr>').join(''
+)||'<tr><td colspan="6" style="color:var(--dim2)">нет данных</td></tr>')+'</tbody>';
     document.getElementById('mods').innerHTML='<thead><tr><th>Модель</th><th>$ вх</th><th>$ вых</th><th>Blend</th></tr></thead><tbody>'+
       ((d.models||[]).slice(0,12).map(m=>'<tr><td><b>'+esc(m.id)+'</b> <span class="b b-b">'+m.size_b+'B</span></td><td>'+m.price_in+'</td><td>'+m.price_out+'</td><td class="w700">$'+m.blended_1m+'</td></tr>').join('')||'<tr><td colspan="4" style="color:var(--dim2)">нет данных</td></tr>')+'</tbody>';
     document.getElementById('best').innerHTML='<thead><tr><th>Модель</th><th>GPU</th><th>ток/с</th><th>Выр/ч</th><th>Аренда/ч</th><th>Маржа/ч</th></tr></thead><tbody>'+
