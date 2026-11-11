@@ -7,23 +7,45 @@
   3. Расчёт маржи $/час для связок (GPU-класс x модель) на консервативной пропускной
   4. -> data/market.json (панель index.html)
 """
-import base64, json, os, time, urllib.request
+import base64, json, os, time, urllib.parse, urllib.request
 
 REPO = 'palcikia-crypto/arb-lab'
 # консервативная пропускная способность vLLM, ток/с (батчинг)
-TPS = {'A100': {(7, 9): 1600, (12, 15): 900}, '4090': {(7, 9): 800, (12, 15): 450}}
+TPS = {'big': {(7, 9): 1600, (12, 15): 900}, '4090': {(7, 9): 800, (12, 15): 450}}
 SIZE_KEYS = ['7b', '8b', '9b', '12b', '14b']
 KEYWORDS = ['qwen', 'llama', 'deepseek', 'mistral', 'gemma', 'phi', 'granite', 'olmo']
+
+# подтвержденные точные имена gpu_name в API Vast (eq-фильтр)
+VAST_CLASSES = [
+    ('A100 SXM4 80GB', ['A100 SXM4']),
+    ('H100 SXM 80GB', ['H100 SXM']),
+    ('H100 NVL', ['H100 NVL']),
+    ('H200', ['H200']),
+    ('RTX 4090', ['RTX 4090']),
+    ('RTX 5090', ['RTX 5090']),
+    ('RTX 5080', ['RTX 5080']),
+    ('RTX 3090', ['RTX 3090']),
+    ('RTX A6000', ['RTX A6000']),
+    ('L40S', ['L40S']),
+    ('A40', ['A40']),
+]
 
 
 def log(m):
     print('[watch] %s' % m, flush=True)
 
 
-def api(url):
-    req = urllib.request.Request(url, headers={'User-Agent': 'arb-lab/1.0'})
-    with urllib.request.urlopen(req, timeout=90) as f:
-        return json.load(f)
+def api(url, timeout=30, retries=2):
+    last = None
+    for _ in range(retries + 1):
+        try:
+            req = urllib.request.Request(url, headers={'User-Agent': 'arb-lab/1.0'})
+            with urllib.request.urlopen(req, timeout=timeout) as f:
+                return json.load(f)
+        except Exception as e:
+            last = e
+            time.sleep(3)
+    raise last
 
 
 def push_github(name, obj):
@@ -62,58 +84,25 @@ def median(xs):
     return s[n // 2] if n % 2 else round((s[n // 2 - 1] + s[n // 2]) / 2, 3)
 
 
-def _gpu_label(name):
-    n = (name or '').upper().replace('_', ' ')
-    if '4090D' in n:
-        return None
-    if 'A100' in n and 'SXM' in n:
-        return 'A100 SXM4 80GB'
-    if 'A100' in n and 'PCIE' in n:
-        return 'A100 PCIe 80GB'
-    if 'A100' in n:
-        return 'A100 (прочее)'
-    if 'H100' in n and ('SXM' in n or 'HBM' in n):
-        return 'H100 SXM 80GB'
-    if 'H100' in n:
-        return 'H100 PCIe'
-    if 'H200' in n:
-        return 'H200'
-    if 'L40S' in n or 'L40 S' in n:
-        return 'L40S'
-    if 'RTX 4090' in n:
-        return 'RTX 4090'
-    if 'RTX 5090' in n:
-        return 'RTX 5090'
-    if 'RTX 3090' in n:
-        return 'RTX 3090'
-    return None
-
-
 def vast_prices():
-    out = {}
-    try:
-        d = api('https://console.vast.ai/api/v0/bundles/')
-        for o in d.get('offers') or []:
-            if not o.get('rentable'):
-                continue
-            try:
-                if int(o.get('num_gpus') or 0) != 1:
-                    continue
-            except Exception:
-                continue
-            label = _gpu_label(o.get('gpu_name'))
-            if not label:
-                continue
-            p = o.get('dph_total')
-            if not isinstance(p, (int, float)) or p <= 0:
-                continue
-            out.setdefault(label, []).append(round(float(p), 3))
-    except Exception as e:
-        log('vast: %s' % e)
+    """Лёгкие фильтрованные запросы по классам (маленький payload вместо полного каталога)."""
     res = {}
-    for g, ps in out.items():
-        if len(ps) >= 3:
-            res[g] = {'low': min(ps), 'median': median(ps), 'offers': len(ps)}
+    for label, names in VAST_CLASSES:
+        ps = []
+        for gpu in names:
+            q = urllib.parse.quote(json.dumps(
+                {'gpu_name': {'eq': gpu}, 'rentable': {'eq': True}, 'num_gpus': {'eq': 1}}))
+            try:
+                d = api('https://console.vast.ai/api/v0/bundles/?q=' + q, timeout=25)
+            except Exception as e:
+                log('vast %s: %s' % (gpu, e))
+                continue
+            for o in d.get('offers') or []:
+                p = o.get('dph_total')
+                if isinstance(p, (int, float)) and p > 0:
+                    ps.append(round(float(p), 3))
+        if len(ps) >= 2:
+            res[label] = {'low': min(ps), 'median': median(ps), 'offers': len(ps)}
     return res
 
 
@@ -147,7 +136,6 @@ def openrouter_models():
                         'blended_1m': round((p_in + 3 * p_out) / 4, 4)})
     except Exception as e:
         log('openrouter: %s' % e)
-    # уникальные по id, не дороже 0.5/1M
     seen = {}
     for x in out:
         seen[x['id']] = x
@@ -163,24 +151,29 @@ def tps_for(size, tier):
 
 def combos(models, vast):
     rows = []
-    a100 = min([v['median'] for k, v in vast.items() if k.startswith('A100')] or [0]) or None
+    # tier 'big': датацентровые A100/H100/H200 (возьмём самый дешёвый класс)
+    big_pool = {k: v for k, v in vast.items()
+                if k.startswith(('A100', 'H100', 'H200'))}
+    big = min([v['median'] for v in big_pool.values()] or [0]) or None
+    big_low = min([v['low'] for v in big_pool.values()] or [0]) or None
     g4090 = vast.get('RTX 4090', {}).get('median')
-    a100_low = min([v['low'] for k, v in vast.items() if k.startswith('A100')] or [0]) or None
+    g4090_low = vast.get('RTX 4090', {}).get('low')
     for m in models:
         rev = lambda tps: round(tps * 3600 / 1e6 * m['blended_1m'] * 0.945, 2)
-        if a100:
-            t = tps_for(m['size_b'], 'A100')
+        if big:
+            t = tps_for(m['size_b'], 'big')
             if t:
-                rows.append({'model': m['id'], 'size': m['size_b'], 'gpu': 'A100',
-                             'tps': t, 'rev_hr': rev(t), 'rent_hr': a100,
-                             'margin_hr': round(rev(t) - a100, 2), 'rent_low': a100_low,
-                             'margin_low_hr': round(rev(t) - (a100_low or a100), 2) if a100_low else None})
+                rows.append({'model': m['id'], 'size': m['size_b'], 'gpu': 'big (A100/H100/H200)',
+                             'tps': t, 'rev_hr': rev(t), 'rent_hr': big,
+                             'margin_hr': round(rev(t) - big, 2), 'rent_low': big_low,
+                             'margin_low_hr': round(rev(t) - (big_low or big), 2) if big_low else None})
         if g4090:
             t = tps_for(m['size_b'], '4090')
             if t and m['size_b'] <= 9:
                 rows.append({'model': m['id'], 'size': m['size_b'], 'gpu': 'RTX 4090',
                              'tps': t, 'rev_hr': rev(t), 'rent_hr': g4090,
-                             'margin_hr': round(rev(t) - g4090, 2)})
+                             'margin_hr': round(rev(t) - g4090, 2), 'rent_low': g4090_low,
+                             'margin_low_hr': round(rev(t) - (g4090_low or g4090), 2) if g4090_low else None})
     rows.sort(key=lambda r: -(r.get('margin_hr') or -99))
     return rows[:16]
 
