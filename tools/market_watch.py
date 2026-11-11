@@ -113,8 +113,13 @@ def vast_prices():
                                   'where': o.get('geolocation'), 'down': o.get('inet_down')})
         if len(ps) >= 2:
             res[label] = {'low': min(ps), 'median': median(ps), 'offers': len(ps)}
-    deals.sort(key=lambda x: x['price'])
-    return res, deals[:14]
+    # не более 2 самых дешёвых офферов на класс — чтобы топ не забивал один класс
+    per_class = {}
+    for d in sorted(deals, key=lambda x: x['price']):
+        per_class.setdefault(d['gpu'], []).append(d)
+    mixed = [d for lst in per_class.values() for d in lst[:2]]
+    mixed.sort(key=lambda x: x['price'])
+    return res, mixed[:14]
 
 
 def _size_b(mid):
