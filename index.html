@@ -6,6 +6,11 @@
 <title>⚡ ArbLab — инференс-арбитраж</title>
 <style>
 :root{--bg:#0b0e14;--card:#131826;--dim:#8b93a7;--dim2:#565e73;--green:#3ddc84;--red:#ff5c5c;--amber:#ffb02e;--acc:#6aa6ff}
+.alerts{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.al{border-radius:12px;padding:10px 14px;font-size:12.5px;border:1px solid}
+.al-warn{background:#2b1616;border-color:#5c2a2a;color:#ffb0b0}
+.al-ok{background:#15261a;border-color:#2a5c37;color:#9fe8b8}
+.al-info{background:#16202f;border-color:#2a3a5c;color:#a8c6f0}
 *{box-sizing:border-box}
 body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:#e8ecf4;margin:0;padding:16px}
 .wrap{max-width:1080px;margin:0 auto}
@@ -33,6 +38,7 @@ tr:last-child td{border-bottom:none}
 .check li b{color:#e8ecf4;font-weight:600}
 .ok{color:var(--green)}
 a{color:v
+
 ar(--acc);text-decoration:none}
 .cta{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#1f6feb,#3ddc84);color:#fff;font-weight:700;font-size:14px;padding:12px 20px;border-radius:12px;text-decoration:none;box-shadow:0 4px 18px rgba(61,220,132,.25)}
 .cta:hover{filter:brightness(1.1)}
@@ -57,9 +63,11 @@ ar(--acc);text-decoration:none}
     <a class="cta" href="https://cloud.vast.ai/account/" target="_blank">💳 Пополнить Vast.ai</a>
   </div>
 
+  <div class="alerts" id="alerts"></div>
   <div class="hero">
     <div class="chip">Маржа/ч топ-связки<b id="h1">…</b></div>
-    <div class="ch
+    <div class="c
+h
 ip">Дешевле всего GPU<b id="h2">…</b></div>
     <div class="chip">Моделей в мониторинге<b id="h3">…</b></div>
     <div class="chip">Стадия проекта<b id="h4">готово к запуску · ждём топ-ап</b></div>
@@ -76,7 +84,8 @@ ip">Дешевле всего GPU<b id="h2">…</b></div>
         <li><b>Каждый запрос = деньги.</b> Разработчик платит за токены (OpenRouter оставляет себе ~5%, остальное нам). Vast списывает аренду карты. Разница = <b>маржа</b> — она видна в карточке «Топ связок» сверху, в реальном времени.</li>
         <li><b>Вывод заработанного</b> — OpenRouter копит выручку в кабинете провайдера, выводишь по своим реквизитам (карта/крипта — настраивается при регистрации провайдера). Важно: на этом этапе надо один раз проверить, какие способы вывода доступны для твоей страны.</li>
       </ol>
-      <div style="margin-top:10px;font-size:11.5px;color:var(--dim)">Почему это легально и безопасно: мы перепродаём <b>токены</b> (услуги ИИ), а не «субаренду серверов» — прямого запрета 
+      <div style="margin-top:10px;font-size:11.5px;color:var(--dim)">Почему это легально и безопасно: мы перепродаём <b>токены</b> (услуги ИИ), а не «субаренду серверов» — прямого запрет
+а 
 в правилах Vast нет. Если карту прервут (спот), снайпер просто поднимет новую — инференс не хранит состояние, ничего не теряется.</div>
     </div>
 
@@ -87,7 +96,7 @@ ip">Дешевле всего GPU<b id="h2">…</b></div>
     </div>
     <div class="card">
       <h2>🖥 GPU: аренда на Vast.ai <span class="r">$/час</span></h2>
-      <div style="overflow-x:auto"><table id="vast"><thead><tr><th>Класс</th><th>Мин</th><th>Медиана</th><th>Офферов</th></tr></thead><tbody><tr><td colspan="4" style="color:var(--dim2)">загрузка…</td></tr></tbody></table></div>
+      <div style="overflow-x:auto"><table id="vast"><thead><tr><th>Класс</th><th>Мин</th><th>Медиана</th><th>RunPod</th><th>Офферов</th></tr></thead><tbody><tr><td colspan="5" style="color:var(--dim2)">загрузка…</td></tr></tbody></table></div>
     </div>
     <div class="card">
       <h2>🔥 Спот-сделки <span class="r">самые дешёвые офферы прямо сейчас</span></h2>
@@ -102,7 +111,8 @@ ip">Дешевле всего GPU<b id="h2">…</b></div>
     <div class="card">
       <h2>❓ Частые вопросы</h2>
       <div class="faq">
-        <deta
+        <d
+eta
 ils><summary>Сколько денег нужно и когда окупится?</summary><p>$20-50. Аренда 4090 ~$0.35/час, то есть $20 = ~55 часов непрерывной работы. Первая прибыль — после одобрения заявки в OpenRouter (обычно несколько дней) и первых запросов.</p></details>
         <details><summary>Что я должен делать каждый день?</summary><p>Ничего. Мониторинг, поиск сделок и (после включения снайпера) запуск сервера — автоматические. Твоя роль — раз в день взглянуть на панель.</p></details>
         <details><summary>А если арендованную карту заберут?</summary><p>Спот-карта может прерваться. Инференс не хранит данные — снайпер просто арендует следующую дешёвую. Потерь нет, разве что минуты простоя.</p></details>
@@ -118,7 +128,8 @@ ils><summary>Сколько денег нужно и когда окупится
           <tr><td><b>🥇 Инференс-арбитраж</b> (Vast → OpenRouter)</td><td>Топ-ап $20-50</td><td class="pos">Маржа с токенов, растёт с трафиком</td><td><span class="b b-v">готово на 100%</span></td></tr>
           <tr><td><b>🥈 Grass / Honeygain</b> (продажа домашнего интернета)</td><td>Домашний IP + включённое устройство</td><td class="amb">$5-50/мес, фоном</td><td><span class="b b-o">опция, если есть домашний канал</span></td></tr>
           <tr><td><b>🥉 Salad</b> (домашняя игровая карта)</td><td>Физическая 3090/4090 дома</td><td class="amb">до ~$0.60/час</td><td><span class="b b-o">если появится карта</span></td></tr>
-          <tr><td><b>⚙️ DePIN-сети</b> (io.net / Akash / Render)</td><td>Те же арендованные GPU</td><td class="amb">Токены, загрузка плавает</td><td><span class="b b-b">второй рынок сбыта — позже</span></td></tr>
+          <tr><td><b>⚙️ DePIN-сети</b> (io.net / Akash / 
+Render)</td><td>Те же арендованные GPU</td><td class="amb">Токены, загрузка плавает</td><td><span class="b b-b">второй рынок сбыта — позже</span></td></tr>
         </tbody>
       </table></div>
       <div style="font-size:11.5px;color:var(--dim);margin-top:8px">❌ Не работает (проверено): Salad/Grass на VPS, перепродажа голых VM (ToS), авто-вывод «на счётчик». Честный разбор каждого трека — в <a href="https://github.com/palcikia-crypto/arb-lab/blob/main/docs/passive_tracks.md" target="_blank">docs/passive_tracks.md</a></div>
@@ -145,7 +156,8 @@ y" target="_blank">OpenRouter Providers</a></div>
 const RAW='https://raw.githubusercontent.com/palcikia-crypto/arb-lab/main/data/market.json';
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
 function money(x){return '$'+(x==null?'—':Number(x).toFixed(2));}
-function cls(x){return x>0?'pos':(x<0?'neg':'amb');}
+function cls(x){return x>0?'pos':(x<0
+?'neg':'amb');}
 async function load(){
   try{
     const r=await fetch(RAW+'?t='+Math.floor(Date.now()/60000));
@@ -155,13 +167,35 @@ async function load(){
     document.getElementById('h1').innerHTML=b?('<span class="'+cls(b.margin_hr)+'">'+money(b.margin_hr)+'</span> <span style="color:var(--dim);font-size:11px">'+esc(b.gpu)+' · '+esc((b.model||'').split('/')[1]||b.model)+'</span>'):'—';
     let vc=Object.entries(d.vast||{}).map(([k,v])=>[k,v]).sort((a,b2)=>a[1].median-b2[1].median);
     document.getElementById('h2').textContent=vc.length?vc[0][0]+' · '+money(vc[0][1].median):'—';
-    document.getElementById('vast').innerHTML='<thead><tr><th>Класс</th><th>Мин</th><th>Медиана</th><th>Офферов</th></tr></thead><tbody>'+
-      (vc.length?vc.map(([k,v])=>'<tr><td><b>'+esc(k)+'</b></td><td class="pos w700">'+money(v.low)+'</td><td>'+money(v.median)+'</td><td style="color:var(--dim)">'+v.offers+'</td></tr>').join(''):'<tr><td colspan="4" style="color:var(--dim2)">нет данных</td></tr>')+'</tbody>';
+    const rp=d.runpod||{};
+    document.getElementById('vast').innerHTML='<thead><tr><th>Класс</th><th>Мин</th><th>Медиана</th><th>RunPod</th><th>Офферов</th></tr></thead><tbody>'+
+      (vc.length?vc.map(([k,v])=>'<tr><td><b>'+esc(k)+'</b></td><td class="pos w700">'+money(v.low)+'</td><td>'+money(v.median)+'</td><td>'+(rp[k]?'
     document.getElementById('deals').innerHTML='<thead><tr><th>Класс</th><th>$ /ч</th><th>эфф./$</th><th>RAM</th><th>Где</th><th>ID</th></tr></thead><tbody>'+
       ((d.deals||[]).slice(0,10).map(x=>'<tr><td><b>'+esc(x.gpu)+'</b></td><td class="pos w700">'+money(x.price)+'</td><td>'+x.eff+'</td><td>'+(x.ram?Math.round(x.ram/1024)+' ГБ':'—')+'</td><td style="color:var(--dim)">'+esc(x.where||'—')+'</td><td style="color:var(--dim2)">'+x.id+'</td></tr>').join(''
 )||'<tr><td colspan="6" style="color:var(--dim2)">нет данных</td></tr>')+'</tbody>';
     document.getElementById('mods').innerHTML='<thead><tr><th>Модель</th><th>$ вх</th><th>$ вых</th><th>Blend</th></tr></thead><tbody>'+
-      ((d.models||[]).slice(0,12).map(m=>'<tr><td><b>'+esc(m.id)+'</b> <span class="b b-b">'+m.size_b+'B</span></td><td>'+m.price_in+'</td><td>'+m.price_out+'</td><td class="w700">$'+m.blended_1m+'</td></tr>').join('')||'<tr><td colspan="4" style="color:var(--dim2)">нет данных</td></tr>')+'</tbody>';
+      ((d.models||[]).slice(0,12).map(m=>'<tr><td><b>'+esc(m.id)+'</b> <span class="b b-b">'+m.size_b+'B</span></td><td>'+m.price_in+'</td><td>'+m.price_out+'</td><td class="w700">$'+m.blended_1m+'</td></tr>').join('')||'<
+tr><td colspan="4" style="color:var(--dim2)">нет данных</td></tr>')+'</tbody>';
+    document.getElementById('best').innerHTML='<thead><tr><th>Модель</th><th>GPU</th><th>ток/с</th><th>Выр/ч</th><th>Аренда/ч</th><th>Маржа/ч</th></tr></thead><tbody>'+
+      ((d.best||[]).slice(0,10).map(b=>'<tr><td><b>'+esc((b.model||'').split('/')[1]||b.model)+'</b></td><td><span class="b b-v">'+esc(b.gpu)+'</span></td><td>'+b.tps+'</td><td>'+money(b.rev_hr)+'</td><td style="color:var(--amber)">'+money(b.rent_hr)+'</td><td class="w700 '+cls(b.margin_hr)+'">'+money(b.margin_hr)+'</td></tr>').join('')||'<tr><td colspan="6" style="color:var(--dim2)">первые расчёты через ~2 минуты</td></tr>')+'</tbody>';
+    document.getElementById('upd').textContent='обновлено: '+new Date((d.updated_at||0)*1000).toLocaleString('ru-RU')+' · источник: data/market.json';
+  }catch(e){
+    document.getElementById('upd').textContent='данные ещё не собраны (первый прогон мониторинга)';
+  }
+}
+load();
+setInterval(load, 300000);
+</script>
+</body>
+</html>+rp[k].toFixed(2):'<span style="color:var(--dim2)">—</span>')+'</td><td style="color:var(--dim)">'+v.offers+'</td></tr>').join(''):'<tr><td colspan="5" style="color:var(--dim2)">нет данных</td></tr>')+'</tbody>';
+    const al=d.alerts||[];
+    document.getElementById('alerts').innerHTML=al.map(a=>'<div class="al al-'+a.lvl+'">'+esc(a.text)+'</div>').join('');
+    document.getElementById('deals').innerHTML='<thead><tr><th>Класс</th><th>$ /ч</th><th>эфф./$</th><th>RAM</th><th>Где</th><th>ID</th></tr></thead><tbody>'+
+      ((d.deals||[]).slice(0,10).map(x=>'<tr><td><b>'+esc(x.gpu)+'</b></td><td class="pos w700">'+money(x.price)+'</td><td>'+x.eff+'</td><td>'+(x.ram?Math.round(x.ram/1024)+' ГБ':'—')+'</td><td style="color:var(--dim)">'+esc(x.where||'—')+'</td><td style="color:var(--dim2)">'+x.id+'</td></tr>').join(''
+)||'<tr><td colspan="6" style="color:var(--dim2)">нет данных</td></tr>')+'</tbody>';
+    document.getElementById('mods').innerHTML='<thead><tr><th>Модель</th><th>$ вх</th><th>$ вых</th><th>Blend</th></tr></thead><tbody>'+
+      ((d.models||[]).slice(0,12).map(m=>'<tr><td><b>'+esc(m.id)+'</b> <span class="b b-b">'+m.size_b+'B</span></td><td>'+m.price_in+'</td><td>'+m.price_out+'</td><td class="w700">$'+m.blended_1m+'</td></tr>').join('')||'<
+tr><td colspan="4" style="color:var(--dim2)">нет данных</td></tr>')+'</tbody>';
     document.getElementById('best').innerHTML='<thead><tr><th>Модель</th><th>GPU</th><th>ток/с</th><th>Выр/ч</th><th>Аренда/ч</th><th>Маржа/ч</th></tr></thead><tbody>'+
       ((d.best||[]).slice(0,10).map(b=>'<tr><td><b>'+esc((b.model||'').split('/')[1]||b.model)+'</b></td><td><span class="b b-v">'+esc(b.gpu)+'</span></td><td>'+b.tps+'</td><td>'+money(b.rev_hr)+'</td><td style="color:var(--amber)">'+money(b.rent_hr)+'</td><td class="w700 '+cls(b.margin_hr)+'">'+money(b.margin_hr)+'</td></tr>').join('')||'<tr><td colspan="6" style="color:var(--dim2)">первые расчёты через ~2 минуты</td></tr>')+'</tbody>';
     document.getElementById('upd').textContent='обновлено: '+new Date((d.updated_at||0)*1000).toLocaleString('ru-RU')+' · источник: data/market.json';
